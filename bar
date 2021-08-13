@@ -22,14 +22,29 @@ get_columns() {
     fi
 }
 
+is_number() {
+    case "$1" in
+        ''|*[!0-9]*) false;;
+        *) true;;
+    esac
+}
+
+draw_bar() {
+    printf '\r'
+    printf "$1%.0s" $(seq 1 "$2")
+}
+
 trap show_cursor EXIT
 hide_cursor
 
 columns=$(get_columns)
-while IFS='' read -r update; do
-    progress="${update% *}"
-    size="${update#* }"
-    width="$(((progress * columns) / size))"
-    printf '\r'
-    printf '█%.0s' $(seq 1 "$width")
+while IFS= read -r line; do
+    progress="${line% *}"
+    size="${line#* }"
+    if is_number "$progress" && is_number "$size"; then
+        draw_bar '█' "$(((progress * columns) / size))"
+    else
+        printf -- "\n%s\n" "$line" >&2
+        exit 1
+    fi
 done
