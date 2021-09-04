@@ -29,20 +29,20 @@ is_number() {
     esac
 }
 
-draw_bar() {
-    printf '\r'
-    printf "$1%.0s" $(seq 1 "$2")
-}
-
 trap show_cursor EXIT
 hide_cursor
 
+bar_width=0
 columns=$(get_columns)
 while IFS= read -r line; do
     progress="${line% *}"
     size="${line#* }"
     if is_number "$progress" && is_number "$size"; then
-        draw_bar '█' "$(((progress * columns) / size))"
+        new_width="$(((progress * columns) / size))"
+        while [ "$new_width" -gt "$bar_width" ]; do
+            printf '█'
+            bar_width="$((bar_width + 1))"
+        done
     else
         printf -- "\n%s\n" "$line" >&2
         exit 1
