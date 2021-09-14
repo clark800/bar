@@ -29,6 +29,12 @@ is_number() {
     esac
 }
 
+# if stdin is a tty then just draw a full bar and exit
+if [ -t 0 ]; then
+    printf "%$(get_columns)s\n" | tr ' ' '-'
+    exit 0
+fi
+
 trap show_cursor EXIT
 hide_cursor
 
@@ -39,12 +45,11 @@ while IFS= read -r line; do
     size="${line#* }"
     if is_number "$progress" && is_number "$size"; then
         new_width="$(((progress * columns) / size))"
-        while [ "$new_width" -gt "$bar_width" ]; do
-            printf '█'
-            bar_width="$((bar_width + 1))"
-        done
-    else
-        printf -- "\n%s\n" "$line" >&2
+        delta="$((new_width - bar_width))"
+        printf "%${delta}s" | tr ' ' '-'
+        bar_width="$new_width"
+    else # probably an error message
+        printf "\n%s\n" "$line" >&2
         exit 1
     fi
 done
