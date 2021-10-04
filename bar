@@ -48,9 +48,9 @@ while IFS= read -r line; do
         delta="$((new_width - bar_width))"
         printf "%${delta}s" | tr ' ' '-'
         bar_width="$new_width"
-    else # probably an error message
-        printf "\n%s\n" "$line" >&2
-        exit 1
     fi
 done
-printf '\n'
+
+if [ "$bar_width" -gt 0 ]; then
+    printf '\n'
+fi
